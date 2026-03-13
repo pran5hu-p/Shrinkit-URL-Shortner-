@@ -23,7 +23,7 @@ export async function insertUser({ firstname, lastname, email, password, salt })
         firstname: firstname,
         lastname: lastname,
         email: email,
-        password: password, // Explicitly map 'password' argument to 'password' column
+        password: password,
         salt: salt,
     }).returning({ id: usersTable.id });
     
