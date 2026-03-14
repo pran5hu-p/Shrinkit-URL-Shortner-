@@ -5,8 +5,26 @@ import {urlsTable} from '../models/index.js'
 import { nanoid } from 'nanoid';
 import { ensureAuthenticated } from '../middlewares/auth.middleware.js';
 import { createShortUrl } from '../services/url.service.js';
-import { eq } from 'drizzle-orm';
+import { eq, and} from 'drizzle-orm';
 const router = express.Router();
+
+router.get('/codes', ensureAuthenticated, async function (req, res) {
+  const codes = await db
+    .select()
+    .from(urlsTable)
+    .where(eq(urlsTable.userId, req.user.id));
+
+  return res.json({ codes });
+});
+
+router.delete('/:id', ensureAuthenticated, async function (req, res) {
+  const id = req.params.id;
+  await db
+    .delete(urlsTable)
+    .where(and(eq(urlsTable.id, id), eq(urlsTable.userId, req.user.id)));
+
+  return res.status(200).json({ deleted: true });
+});
 
 router.get('/:shortcode', async (req, res) => {
     const shortcode = req.params.shortcode;
