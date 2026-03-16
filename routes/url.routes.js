@@ -4,8 +4,10 @@ import {db} from '../db/index.js';
 import {urlsTable} from '../models/index.js'
 import { nanoid } from 'nanoid';
 import { ensureAuthenticated } from '../middlewares/auth.middleware.js';
-import { createShortUrl } from '../services/url.service.js';
+import { createShortUrl, updateShortUrl } from '../services/url.service.js';
 import { eq, and} from 'drizzle-orm';
+import { hashPasswordWithSalt } from '../utils/hash.js';
+import bcrypt from 'bcryptjs';
 const router = express.Router();
 
 router.get('/codes', ensureAuthenticated, async function (req, res) {
@@ -64,5 +66,25 @@ router.post('/shorten', ensureAuthenticated, async(req, res) => {
 
     return res.status(201).json(result);
 })
+
+router.patch('/:id', ensureAuthenticated, async(req, res) => {
+    const { expiresAt, collectionLinks, isCollection, password, description } = req.body;
+    const updates = {};
+    if(description !== undefined) updates.description = description || null;
+    if (expiresAt       !== undefined) updates.expiresAt       = expiresAt ? new Date(expiresAt) : null;
+    if (collectionLinks !== undefined) updates.collectionLinks = collectionLinks;
+    if (isCollection    !== undefined) updates.isCollection    = isCollection;
+    if(password !== undefined) updates.password = password? bcrypt.hash(password,12) : null;
+
+    const result = await updateShortUrl(req.params.id, req.user.id, updates);
+
+    if(!result){
+        return res.status(404).json({error: 'Shortcode not found or you do not have permission to update it'});
+    }
+
+    return res.json({url:result});
+})
+
+
 
 export default router;

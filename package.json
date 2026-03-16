@@ -21,6 +21,7 @@
     "tsx": "^4.21.0"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "express": "~4.22.1",
@@ -28,6 +29,7 @@
     "nanoid": "^5.1.6",
     "pg": "^8.20.0",
     "postgres": "^3.4.8",
+    "ua-parser-js": "^2.0.9",
     "zod": "^4.3.6"
   }
 }
