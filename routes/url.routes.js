@@ -8,6 +8,7 @@ import { createShortUrl, updateShortUrl } from '../services/url.service.js';
 import { eq, and} from 'drizzle-orm';
 import { hashPasswordWithSalt } from '../utils/hash.js';
 import bcrypt from 'bcryptjs';
+import { getAnalyticsForUrl, getAnalyticsForUrls } from '../services/analytics.service.js';
 const router = express.Router();
 
 router.get('/codes', ensureAuthenticated, async function (req, res) {
@@ -85,6 +86,27 @@ router.patch('/:id', ensureAuthenticated, async(req, res) => {
     return res.json({url:result});
 })
 
+router.get('/analytics', ensureAuthenticated, async(req, res) => {
+    const urls = await db.select({id: urlsTable.id, shortcode: urlsTable.shortcode}).from(urlsTable).where(eq(urlsTable.userId, req.user.id));
 
+    const urlIds = urls. map((u => u.id));
+    const stats = getAnalyticsForUrls(urlIds);
+
+    return res.json({analytics: stats, urls});
+})
+
+router.get('/analytics/:id', ensureAuthenticated, async(req, res) => {
+    const [url] = await db.select({id:urlsTable.id, shortcode: urlsTable.shortcode, target: urlsTable.target})
+    .from(urlsTable)
+    .where(and(eq(urlsTable.id, req.params.id), eq(urlsTable.userId, req.user.id)));
+
+    if(!url){
+        return res.status(404).json({error: 'Shortcode not found or you do not have permission to view analytics'});
+    }
+
+    const stats = await getAnalyticsForUrl(url.id);
+
+    return res.json({shortcode: url.shortcode, target: url.target, analytics: stats});
+})
 
 export default router;
