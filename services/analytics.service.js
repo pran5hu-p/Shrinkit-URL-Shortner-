@@ -1,6 +1,6 @@
 import {UAParser} from "ua-parser-js";
-import {db} from "../db.js";
-import {analyticsTable} from "../db/schema/analytics.js";
+import {db} from "../db/index.js";
+import { analyticsTable } from "../models/analytics.model.js";
 import { eq, inArray } from "drizzle-orm";
 
 export function logclick(urlId, req){
